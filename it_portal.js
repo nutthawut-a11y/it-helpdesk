@@ -1,3 +1,7 @@
+// ── CONSTANTS ────────────────────────────────────────────────
+const SP_SITE   = 'https://furuyath.sharepoint.com/sites/ITHelpdesk';
+const LIST_NAME = 'ตัวติดตามปัญหา';
+
 // ── MSAL CONFIG ──────────────────────────────────────────────
 const MSAL_CONFIG = {
   auth: {
@@ -32,8 +36,6 @@ async function sp_headers(extra = {}) {
 }
 
 // ── SHARED ──────────────────────────────────────────────────
-const SP_SITE = 'https://furuyath.sharepoint.com/sites/ITHelpdesk';
-const LIST_NAME = 'ตัวติดตามปัญหา';
 let tabLoaded = {};
 
 function setRole(role) {
