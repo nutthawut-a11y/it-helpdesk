@@ -15,18 +15,31 @@ const SP_SCOPES   = ['https://furuyath.sharepoint.com/.default'];
 const GRAPH_SCOPES = ['https://graph.microsoft.com/Mail.Read'];
 const msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
 
+// Handle redirect response first — then auto-login if no account
+const _authReady = msalInstance.handleRedirectPromise()
+  .then(response => {
+    if (response) console.log('MSAL: login via redirect OK');
+    const accounts = msalInstance.getAllAccounts();
+    if (accounts.length === 0) {
+      // ยังไม่ login — redirect ไป Microsoft login ทันที
+      msalInstance.loginRedirect({ scopes: SP_SCOPES });
+    }
+  })
+  .catch(err => console.error('MSAL redirect error:', err));
+
 async function getToken(scopes) {
-  let account = msalInstance.getAllAccounts()[0];
+  await _authReady;
+  const account = msalInstance.getAllAccounts()[0];
   if (!account) {
-    await msalInstance.loginPopup({ scopes });
-    account = msalInstance.getAllAccounts()[0];
+    msalInstance.loginRedirect({ scopes });
+    return new Promise(() => {}); // รอ redirect
   }
   try {
     const r = await msalInstance.acquireTokenSilent({ scopes, account });
     return r.accessToken;
   } catch {
-    const r = await msalInstance.acquireTokenPopup({ scopes });
-    return r.accessToken;
+    msalInstance.acquireTokenRedirect({ scopes, account });
+    return new Promise(() => {}); // รอ redirect
   }
 }
 
