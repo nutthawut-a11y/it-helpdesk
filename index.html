@@ -1,0 +1,224 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="./it_portal.css">
+</head>
+<body>
+<!-- HEADER -->
+<div class="portal-header">
+  <div class="brand"><div class="brand-icon">🖥</div>IT Helpdesk Portal</div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="form" onclick="showTab('form',this)">แจ้งซ่อมใหม่</button>
+    <button class="nav-tab" data-tab="mytickets" onclick="showTab('mytickets',this)">Tickets ของฉัน</button>
+    <button class="nav-tab" data-tab="staff" data-roles="it_staff,it_admin" onclick="showTab('staff',this)">IT Dashboard</button>
+    <button class="nav-tab" data-tab="manager" data-roles="gm,it_admin" onclick="showTab('manager',this)">Manager Report</button>
+    <button class="nav-tab" data-tab="ops" data-roles="it_staff,it_admin,gm" onclick="showTab('ops',this)">IT Operations</button>
+  </nav>
+  <div class="role-wrap">
+    <label>Role:</label>
+    <select id="role-select" onchange="setRole(this.value)">
+      <option value="employee">พนักงาน</option>
+      <option value="it_staff">IT Staff</option>
+      <option value="it_admin">IT Admin</option>
+      <option value="gm">GM</option>
+    </select>
+  </div>
+</div>
+
+<!-- TAB: แจ้งซ่อม -->
+<div id="tab-form" class="tab-page active">
+  <div class="container">
+    <div class="form-card">
+      <h2>แจ้งปัญหา IT / ขอรับบริการ</h2>
+      <p class="sub">กรอกรายละเอียดให้ครบถ้วน ทีม IT จะได้รับ email แจ้งเตือนทันที</p>
+      <div class="form-row">
+        <div class="form-group"><label>ชื่อผู้แจ้ง <span class="req">*</span></label><input type="text" id="f-name" placeholder="ชื่อ-นามสกุล"></div>
+        <div class="form-group"><label>Email <span class="req">*</span></label><input type="email" id="f-email" placeholder="your@furuya.co.th"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>แผนก <span class="req">*</span></label>
+          <select id="f-dept"><option value="">— เลือกแผนก —</option>
+            <option>Account Dept</option><option>Admin Dept</option><option>Assembly Dept</option><option>BOI</option>
+            <option>Injection Dept</option><option>IT Dept</option><option>Management Dept</option><option>Marketing Dept</option>
+            <option>Mold Dept</option><option>Paint Color Dept</option><option>PC&amp;MM Dept</option><option>Purchase</option>
+            <option>QA Dept</option><option>Safety Dept</option>
+          </select>
+        </div>
+        <div class="form-group"><label>ประเภทปัญหา <span class="req">*</span></label>
+          <select id="f-category"><option value="">— เลือกประเภท —</option>
+            <option>Hardware (คอมพิวเตอร์/อุปกรณ์)</option><option>Software (โปรแกรม/ระบบ)</option>
+            <option>Network / Internet</option><option>Email / Microsoft 365</option>
+            <option>Printer / Scanner</option><option>Account / Password</option>
+            <option>ขอเพิ่ม / ติดตั้งโปรแกรม</option><option>อื่นๆ</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group"><label>หัวข้อปัญหา <span class="req">*</span></label><input type="text" id="f-title" placeholder="สรุปปัญหาสั้นๆ"></div>
+      <div class="form-group"><label>รายละเอียด <span class="req">*</span></label><textarea id="f-detail" placeholder="อธิบายปัญหาให้ละเอียด เช่น เกิดขึ้นเมื่อไหร่ มีข้อความ error อะไร"></textarea></div>
+      <div class="form-group">
+        <label>ระดับความเร่งด่วน <span class="req">*</span></label>
+        <div class="priority-grid">
+          <div class="prio-btn" onclick="frm_setPrio('Critical')" id="p-Critical"><div class="dot dot-critical"></div><div class="pname">Critical</div><div class="pdesc">งานหยุดทั้งระบบ</div></div>
+          <div class="prio-btn" onclick="frm_setPrio('High')" id="p-High"><div class="dot dot-high"></div><div class="pname">High</div><div class="pdesc">กระทบงานสำคัญ</div></div>
+          <div class="prio-btn selected" onclick="frm_setPrio('Medium')" id="p-Medium"><div class="dot dot-medium"></div><div class="pname">Medium</div><div class="pdesc">ไม่เร่งด่วน</div></div>
+          <div class="prio-btn" onclick="frm_setPrio('Low')" id="p-Low"><div class="dot dot-low"></div><div class="pname">Low</div><div class="pdesc">แก้ได้เมื่อมีเวลา</div></div>
+        </div>
+        <div class="sla-hint" id="sla-hint">⏱ SLA: ทีม IT จะแก้ไขภายใน 8 ชั่วโมง (Medium)</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="frm_clear()">ล้างข้อมูล</button>
+        <button class="btn btn-primary" id="submit-btn" onclick="frm_submit()">ส่งแจ้งซ่อม →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: Tickets ของฉัน -->
+<div id="tab-mytickets" class="tab-page">
+  <div class="container">
+    <div class="tickets-header">
+      <h2>🎫 Tickets ของฉัน</h2>
+      <button class="refresh-btn" onclick="frm_loadMyTickets()">🔄 รีเฟรช</button>
+    </div>
+    <div id="my-tickets-list"><div class="empty-state"><div class="icon">📭</div><p>กดรีเฟรชเพื่อโหลด</p></div></div>
+  </div>
+</div>
+
+<!-- TAB: IT Dashboard -->
+<div id="tab-staff" class="tab-page">
+  <div class="container-wide">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2 style="font-size:20px;font-weight:700;">🖥 IT Ticket Management</h2>
+      <button class="refresh-btn" onclick="std_load()">🔄 รีเฟรช</button>
+    </div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="std_filter('all',this)">📋 ทั้งหมด <span id="fc-all">0</span></button>
+      <button class="filter-btn" onclick="std_filter('ใหม่',this)">🆕 ใหม่ <span id="fc-new">0</span></button>
+      <button class="filter-btn" onclick="std_filter('กำลังดำเนินการ',this)">⚡ กำลังดำเนินการ <span id="fc-prog">0</span></button>
+      <button class="filter-btn" onclick="std_filter('รอวัสดุ',this)">⏳ รอวัสดุ</button>
+      <button class="filter-btn" onclick="std_filter('แก้ไขแล้ว',this)">✅ แก้ไขแล้ว</button>
+    </div>
+    <div class="kpi-grid">
+      <div class="kpi kpi-new"><div class="val" id="sk-new">—</div><div class="lbl">🆕 ใหม่</div></div>
+      <div class="kpi kpi-prog"><div class="val" id="sk-prog">—</div><div class="lbl">⚡ กำลังดำเนิน</div></div>
+      <div class="kpi kpi-wait"><div class="val" id="sk-wait">—</div><div class="lbl">⏳ รอวัสดุ</div></div>
+      <div class="kpi kpi-done"><div class="val" id="sk-done">—</div><div class="lbl">✅ แก้แล้ว</div></div>
+      <div class="kpi kpi-breach"><div class="val" id="sk-breach">—</div><div class="lbl">🔴 SLA Breach</div></div>
+    </div>
+    <div class="table-card">
+      <div class="table-card-hdr"><h3>รายการ Tickets</h3></div>
+      <table>
+        <thead><tr><th>Ticket ID</th><th>หัวข้อ</th><th>ผู้แจ้ง / แผนก</th><th>Priority</th><th>Status</th><th>SLA</th><th>จัดการ</th></tr></thead>
+        <tbody id="staff-tbody"><tr><td colspan="7" class="loading-td"><div class="spinner"></div> กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Staff Side Panel -->
+<div class="side-panel" id="staff-panel">
+  <button class="panel-close" onclick="std_closePanel()">✕</button>
+  <h3 id="sp-title">จัดการ Ticket</h3>
+  <div id="sp-info"></div>
+  <div class="section-label">IT Department</div>
+  <div class="field-group"><label>Status</label>
+    <select id="sp-status">
+      <option value="ใหม่">ใหม่</option>
+      <option value="กำลังดำเนินการ">กำลังดำเนินการ</option>
+      <option value="รอวัสดุ">รอวัสดุ</option>
+      <option value="แก้ไขแล้ว">แก้ไขแล้ว</option>
+    </select>
+  </div>
+  <div class="section-label">ผลการแก้ไข</div>
+  <div class="field-group"><label>Resolution Note</label><textarea id="sp-resolution" placeholder="อธิบายวิธีที่ใช้แก้ปัญหา..."></textarea></div>
+  <div class="field-group"><label>วันที่แก้ไขสำเร็จ</label><input type="datetime-local" id="sp-confirm-date"></div>
+  <div class="panel-actions">
+    <button class="btn-full btn-cancel2" onclick="std_closePanel()">ยกเลิก</button>
+    <button class="btn-full btn-save" id="sp-save-btn" onclick="std_save()">💾 บันทึก</button>
+  </div>
+</div>
+
+<!-- TAB: Manager Report -->
+<div id="tab-manager" class="tab-page">
+  <div class="container-wide">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+      <h2 style="font-size:20px;font-weight:700;">📊 IT Operations Report</h2>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select id="mgr-month" onchange="mgr_filter()" style="background:#f0f5f0;border:1px solid #e2e4ed;color:#1a1d2e;padding:7px 12px;border-radius:8px;font-size:13px;outline:none;">
+          <option value="0">เดือนนี้</option><option value="1">เดือนที่แล้ว</option>
+          <option value="3">3 เดือนล่าสุด</option><option value="6">6 เดือนล่าสุด</option>
+        </select>
+        <button class="refresh-btn" onclick="mgr_load()">🔄 รีเฟรช</button>
+        <button class="btn btn-primary" style="font-size:13px;padding:8px 16px;" onclick="mgr_export()">⬇ Export CSV</button>
+      </div>
+    </div>
+    <div class="kpi-grid-m">
+      <div class="kpim kpim-t"><div class="val" id="mk-total">—</div><div class="lbl">Tickets ทั้งหมด</div></div>
+      <div class="kpim kpim-r"><div class="val" id="mk-res">—</div><div class="lbl">แก้ไขแล้ว</div></div>
+      <div class="kpim kpim-b"><div class="val" id="mk-breach">—</div><div class="lbl">🔴 SLA Breach</div></div>
+      <div class="kpim kpim-p"><div class="val" id="mk-pend">—</div><div class="lbl">Pending</div></div>
+      <div class="kpim kpim-s"><div class="val" id="mk-sla">—%</div><div class="lbl">SLA Pass %</div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>📈 แนวโน้ม Ticket รายสัปดาห์</h3><div class="chart-wrap"><canvas id="mgr-trend"></canvas></div></div>
+      <div class="card"><h3>🎯 SLA Performance</h3><div class="chart-wrap"><canvas id="mgr-sla-chart"></canvas></div></div>
+    </div>
+    <div class="grid2">
+      <div class="card"><h3>🏢 แผนกที่แจ้งบ่อย</h3><div id="mgr-dept"></div></div>
+      <div class="card"><h3>⚡ Priority Distribution</h3><div class="chart-wrap"><canvas id="mgr-prio-chart"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>🔴 Tickets ที่เกิน SLA</h3>
+      <table>
+        <thead><tr><th>Ticket ID</th><th>หัวข้อ</th><th>แผนก</th><th>Priority</th><th>SLA Deadline</th><th>เกินมา</th></tr></thead>
+        <tbody id="mgr-breach-tbl"><tr><td colspan="6" style="text-align:center;padding:30px;color:#666;">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: IT Operations -->
+<div id="tab-ops" class="tab-page">
+  <div class="container-wide">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+      <h2 style="font-size:20px;font-weight:700;">⚡ IT Operations Monitor</h2>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span id="ops-updated" style="font-size:11px;color:#666;font-family:Consolas,monospace;"></span>
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+        <button class="refresh-btn" onclick="ops_loadAll()">↻ Refresh</button>
+      </div>
+    </div>
+    <div class="ops-config">
+      <div class="cfg-field"><label>OpManager URL</label><input id="opm-url" value="https://fitmanageengine:8061"></div>
+      <div class="cfg-field"><label>API Key</label><input id="opm-key" class="short" type="password" placeholder="วาง API Key"></div>
+      <div class="cfg-field"><label>Veeam Subject Filter</label><input id="veem-filter" class="short" value="Backup job,BK_FIT,Veeam,Backup Configuration"></div>
+      <button class="btn btn-primary" style="font-size:13px;padding:8px 16px;" onclick="ops_loadAll()">เชื่อมต่อ</button>
+      <div id="ops-status" style="font-size:11px;color:#666;font-family:Consolas,monospace;margin-left:auto;">พร้อมเชื่อมต่อ</div>
+    </div>
+    <div class="ops-kpi">
+      <div class="ops-kpi-card info"><div class="ops-lbl">Veeam Jobs ทั้งหมด</div><div class="ops-val" id="ops-total">–</div></div>
+      <div class="ops-kpi-card ok"><div class="ops-lbl">Success</div><div class="ops-val" id="ops-ok">–</div></div>
+      <div class="ops-kpi-card err"><div class="ops-lbl">Failed</div><div class="ops-val" id="ops-fail">–</div></div>
+      <div class="ops-kpi-card warn"><div class="ops-lbl">OpManager Alerts</div><div class="ops-val" id="ops-alerts">–</div></div>
+    </div>
+    <div class="ops-panels">
+      <div class="ops-panel">
+        <div class="ops-panel-hdr">📧 Veeam Backup Emails <span class="ops-tag ops-tag-info" id="veem-count">0</span></div>
+        <div class="ops-panel-body" id="veem-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
+      </div>
+      <div class="ops-panel">
+        <div class="ops-panel-hdr">🖥 OpManager Alerts <span class="ops-tag ops-tag-warn" id="opm-count">0</span></div>
+        <div class="ops-panel-body" id="opm-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<script src="./it_portal.js"></script>
+</body>
+</html>
