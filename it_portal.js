@@ -15,14 +15,32 @@ const SP_SCOPES   = ['https://furuyath.sharepoint.com/.default'];
 const GRAPH_SCOPES = ['https://graph.microsoft.com/Mail.Read'];
 const msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
 
+// Role map — เพิ่ม email ได้ที่นี่
+const ROLE_MAP = {
+  'nutthawut@furuya.co.th': 'it_admin',
+  'it@furuya.co.th':        'it_staff',
+  'anuchit.po@furuya.co.th':'gm'
+};
+
+function autoSetRole(account) {
+  const email = (account?.username || '').toLowerCase();
+  const role = ROLE_MAP[email] || 'employee';
+  setRole(role);
+  // ซ่อน dropdown ถ้า role ถูก detect อัตโนมัติ
+  const sel = document.getElementById('role-select');
+  if (sel) { sel.value = role; sel.closest('.role-wrap').style.display = 'none'; }
+  console.log(`MSAL: logged in as ${email} → role: ${role}`);
+}
+
 // Handle redirect response first — then auto-login if no account
 const _authReady = msalInstance.handleRedirectPromise()
   .then(response => {
     if (response) console.log('MSAL: login via redirect OK');
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) {
-      // ยังไม่ login — redirect ไป Microsoft login ทันที
       msalInstance.loginRedirect({ scopes: SP_SCOPES });
+    } else {
+      autoSetRole(accounts[0]);
     }
   })
   .catch(err => console.error('MSAL redirect error:', err));
