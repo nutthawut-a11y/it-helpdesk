@@ -140,9 +140,9 @@ tr:hover td{background:rgba(0,0,0,0.02);}
 .ops-panel{background:#ffffff;border:1px solid #e2e4ed;border-radius:10px;overflow:hidden;}
 .ops-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #e2e4ed;background:#f0f5f0;font-size:13px;font-weight:500;}
 .ops-panel-body{padding:10px;max-height:320px;overflow-y:auto;}
-.opm-tab-btn{background:none;border:1px solid #d1d5db;border-radius:6px;padding:2px 9px;font-size:11px;cursor:pointer;color:#555;transition:all .15s;line-height:1.6;}
-.opm-tab-btn.active{background:#0070C0;color:#fff;border-color:#0070C0;}
-.opm-tab-btn:hover:not(.active){background:#e8f0e8;color:#333;}
+.opm-nav-btn{display:flex;align-items:center;gap:8px;padding:11px 18px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;font-size:13px;font-weight:500;color:#1a1d2e;cursor:pointer;transition:box-shadow .15s,border-color .15s,background .15s;}
+.opm-nav-btn:hover{box-shadow:0 2px 8px rgba(0,112,192,.15);border-color:#0070C0;}
+.opm-nav-btn.active{background:#0070C0;color:#fff;border-color:#0070C0;box-shadow:0 2px 8px rgba(0,112,192,.25);}
 .ops-item{display:flex;align-items:flex-start;gap:10px;padding:10px;border-radius:7px;border:1px solid transparent;margin-bottom:4px;}
 .ops-item:hover{background:#f0f5f0;border-color:#e2e4ed;}
 .ops-sev{width:8px;height:8px;border-radius:50%;margin-top:4px;flex-shrink:0;}

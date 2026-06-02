@@ -209,16 +209,21 @@
         <div class="ops-panel-body" id="veem-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
       </div>
       <div class="ops-panel">
-        <div class="ops-panel-hdr">
-          <span>🖥 OpManager <span class="ops-tag ops-tag-warn" id="opm-count">0</span></span>
-          <div style="display:flex;gap:4px;">
-            <button class="opm-tab-btn active" onclick="ops_opmView('alarms',this)">🚨 Alarms</button>
-            <button class="opm-tab-btn" onclick="ops_opmView('devices',this)">💻 Devices</button>
-          </div>
-        </div>
+        <div class="ops-panel-hdr">🖥 OpManager Alerts <span class="ops-tag ops-tag-warn" id="opm-count">–</span></div>
         <div class="ops-panel-body" id="opm-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
-        <div class="ops-panel-body" id="opm-devices" style="display:none"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
       </div>
+    </div>
+
+    <!-- OpManager Navigation + Inline Content -->
+    <div style="margin-top:24px;">
+      <div style="font-weight:600;font-size:15px;color:#1a1d2e;margin-bottom:12px;">🖥 OpManager <span style="font-size:11px;color:#888;font-weight:400;">(ใช้ได้เฉพาะในออฟฟิศ · LAN)</span></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="opm-nav-btn" onclick="ops_section('dashboard',this)"><span>📊</span> Dashboard</button>
+        <button class="opm-nav-btn" onclick="ops_section('servers',this)"><span>🖥</span> Server Inventory</button>
+        <button class="opm-nav-btn" onclick="ops_section('alarms',this)"><span>🚨</span> Alarms</button>
+        <button class="opm-nav-btn" onclick="ops_section('network',this)"><span>🌐</span> Network</button>
+      </div>
+      <div id="opm-section-body" style="display:none;margin-top:12px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;padding:10px;max-height:400px;overflow-y:auto;"></div>
     </div>
 
   </div>
@@ -227,6 +232,6 @@
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="./it_portal.js?v=11"></script>
+<script src="./it_portal.js?v=12"></script>
 </body>
 </html>

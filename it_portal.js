@@ -47,6 +47,11 @@ const _authReady = msalInstance.handleRedirectPromise()
       msalInstance.loginRedirect({ scopes: SP_SCOPES });
     } else {
       autoSetRole(accounts[0]);
+      const returnTab = sessionStorage.getItem('returnTab');
+      if (returnTab) {
+        sessionStorage.removeItem('returnTab');
+        setTimeout(() => document.querySelector(`.nav-tab[data-tab="${returnTab}"]`)?.click(), 300);
+      }
     }
   })
   .catch(err => console.error('MSAL redirect error:', err));
@@ -56,6 +61,7 @@ function ops_connectEmail() {
   const account = msalInstance.getAllAccounts()[0];
   if (!account) return;
   sessionStorage.setItem('graphConsentPending', '1');
+  sessionStorage.setItem('returnTab', 'ops');
   msalInstance.acquireTokenRedirect({ scopes: GRAPH_SCOPES, account });
 }
 
@@ -442,7 +448,7 @@ async function ops_loadVeem() {
       {subject:'[Success] BK_FIT_PAYROLL_to_FitWasabi_Repo',receivedDateTime:new Date(Date.now()-3*3600000).toISOString(),from:{emailAddress:{address:'veeam@furuya.co.th'}},bodyPreview:'Duration: 00:05:23'},
       {subject:'[Failed] Backup Configuration Job',receivedDateTime:new Date(Date.now()-6*3600000).toISOString(),from:{emailAddress:{address:'veeam@furuya.co.th'}},bodyPreview:'Error: Connection timeout'}
     ]);
-    document.getElementById('ops-status').innerHTML='⚠️ Demo data — <a href="javascript:ops_connectEmail()" style="color:#0070C0;font-weight:600;">คลิกเพื่อเชื่อมต่อ Email</a> (ครั้งแรกเท่านั้น)';
+    document.getElementById('ops-status').innerHTML='⚠️ Demo data — <button onclick="ops_connectEmail()" style="background:none;border:none;color:#0070C0;font-weight:600;cursor:pointer;padding:0;font-size:inherit;text-decoration:underline;">คลิกเพื่อเชื่อมต่อ Email</button> (ครั้งแรกเท่านั้น)';
   }
 }
 
@@ -454,12 +460,68 @@ function ops_renderVeem(emails){
   ops_kpi('veem',emails);
 }
 
-function ops_opmView(view, el) {
-  document.querySelectorAll('.opm-tab-btn').forEach(b => b.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById('opm-list').style.display    = view === 'alarms'  ? '' : 'none';
-  document.getElementById('opm-devices').style.display = view === 'devices' ? '' : 'none';
-  if (view === 'devices' && !window._opmDevLoaded) ops_loadOpmDevices();
+let _opmActiveSection = null;
+async function ops_section(name, el) {
+  const body = document.getElementById('opm-section-body');
+  // toggle off ถ้ากดซ้ำ
+  if (_opmActiveSection === name) {
+    _opmActiveSection = null;
+    body.style.display = 'none';
+    document.querySelectorAll('.opm-nav-btn').forEach(b => b.classList.remove('active'));
+    return;
+  }
+  _opmActiveSection = name;
+  document.querySelectorAll('.opm-nav-btn').forEach(b => b.classList.remove('active'));
+  if (el) el.classList.add('active');
+  body.style.display = '';
+  body.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
+
+  const pathMap = {
+    dashboard: ['/api/json/alarms','/api/json/alarm'],
+    servers:   ['/api/json/device','/api/json/resources','/apiclient/api/v2/devices'],
+    alarms:    ['/api/json/alarms','/api/json/alarm','/apiclient/api/v2/alarms'],
+    network:   ['/api/json/device','/api/json/resources'],
+  };
+  const raw = await ops_fetchOpm(pathMap[name] || pathMap.alarms);
+  if (!raw) {
+    body.innerHTML = `<div style="text-align:center;padding:30px;font-size:13px;color:#555;">
+      เชื่อมต่อ OpManager ไม่ได้<br>
+      <small style="color:#888;margin-top:8px;display:block;">ต้องเปิด CORS ใน OpManager ก่อน<br>
+      Settings → General → API → CORS Origins → เพิ่ม <b>https://nutthawut-a11y.github.io</b></small></div>`;
+    return;
+  }
+  let items = Array.isArray(raw) ? raw : (raw.response?.result || raw.data || raw.devices || raw.alarms || raw.alarm || []);
+
+  if (name === 'dashboard') {
+    const crit = items.filter(a => (a.severity||'').toLowerCase().includes('crit')).length;
+    const warn = items.filter(a => (a.severity||'').toLowerCase().includes('warn')).length;
+    const ok   = items.filter(a => (a.severity||'').toLowerCase().includes('clear')).length;
+    body.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;padding:6px;">
+      <div style="background:#f0f5f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:700;color:#0070C0">${items.length}</div><div style="font-size:12px;color:#666;margin-top:4px;">Total Alarms</div></div>
+      <div style="background:#f0f5f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:700;color:#ef4444">${crit}</div><div style="font-size:12px;color:#666;margin-top:4px;">Critical</div></div>
+      <div style="background:#f0f5f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:700;color:#f59e0b">${warn}</div><div style="font-size:12px;color:#666;margin-top:4px;">Warning</div></div>
+      <div style="background:#f0f5f0;border-radius:8px;padding:16px;text-align:center;"><div style="font-size:28px;font-weight:700;color:#22c55e">${ok}</div><div style="font-size:12px;color:#666;margin-top:4px;">Cleared</div></div>
+    </div>`;
+  } else if (name === 'alarms') {
+    if (!items.length) { body.innerHTML = '<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Alarm</div>'; return; }
+    body.innerHTML = items.slice(0,50).map(a => {
+      const n = a.device||a.displayName||a.entityName||'Unknown';
+      const msg = a.message||a.alarmMessage||a.description||'';
+      const sv = (a.severity||'').toLowerCase();
+      const s = sv.includes('crit')||sv.includes('error')?'err':sv.includes('warn')?'warn':sv.includes('clear')?'ok':'info';
+      return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${n}</div><div class="ops-meta">${msg}${msg&&ops_ago(a.lastUpdatedTime||a.createdTime||'')?' · ':''}${ops_ago(a.lastUpdatedTime||a.createdTime||'')}</div></div>${ops_tag(s)}</div>`;
+    }).join('');
+  } else {
+    if (!items.length) { body.innerHTML = '<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Device</div>'; return; }
+    body.innerHTML = items.slice(0,50).map(d => {
+      const nm = d.deviceName||d.displayName||d.entityName||'Unknown';
+      const ip = d.ipAddress||d.ip||'';
+      const tp = d.type||d.deviceType||'';
+      const st = (d.status||d.deviceStatus||'').toString().toUpperCase();
+      const s  = (st==='DOWN'||st==='1'||st==='CRITICAL')?'err':(st==='UP'||st==='0'||st==='ACTIVE')?'ok':'warn';
+      return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${nm}${ip?` <span style="color:#888;font-size:11px;">(${ip})</span>`:''}</div><div class="ops-meta">${tp}${tp&&ops_ago(d.lastPollTime||d.lastUpdatedTime||'')?(' · '+ops_ago(d.lastPollTime||d.lastUpdatedTime||'')):'${ops_ago(d.lastPollTime||d.lastUpdatedTime||'')}'}</div></div>${ops_tag(s)}</div>`;
+    }).join('');
+  }
 }
 
 async function ops_fetchOpm(paths) {
@@ -485,27 +547,6 @@ async function ops_loadOpm(){
   ops_kpi('opm',items);
 }
 
-async function ops_loadOpmDevices() {
-  const el = document.getElementById('opm-devices');
-  el.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
-  const raw = await ops_fetchOpm(['/api/json/device','/api/json/resources','/apiclient/api/v2/devices','/api/json/monitor']);
-  let devices = raw ? (Array.isArray(raw) ? raw : (raw.response?.result || raw.data || raw.devices || [])) : null;
-  if (!devices) {
-    el.innerHTML = '<div style="text-align:center;padding:30px;font-size:13px;color:#555;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#888;margin-top:6px;display:block;">ตรวจสอบ URL, API Key และ CORS Settings<br>OpManager → Settings → General → API</small></div>';
-    return;
-  }
-  window._opmDevLoaded = true;
-  if (!devices.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Device</div>'; return; }
-  el.innerHTML = devices.slice(0,50).map(d => {
-    const name = d.deviceName||d.displayName||d.entityName||'Unknown';
-    const ip   = d.ipAddress||d.ip||'';
-    const type = d.type||d.deviceType||'';
-    const st   = (d.status||d.deviceStatus||'').toString().toUpperCase();
-    const s    = (st==='DOWN'||st==='1'||st==='CRITICAL') ? 'err' : (st==='UP'||st==='0'||st==='ACTIVE') ? 'ok' : 'warn';
-    const label= s==='err'?'Down':s==='ok'?'Up':(st||'Unknown');
-    return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${name}${ip?` <span style="color:#888;font-size:11px;">(${ip})</span>`:''}</div><div class="ops-meta">${type}${type&&d.lastPollTime?' · ':''}${ops_ago(d.lastPollTime||d.lastUpdatedTime||'')}</div></div>${ops_tag(s)}</div>`;
-  }).join('');
-}
 
 function ops_kpi(src,items){
   if(src==='veem'){document.getElementById('ops-total').textContent=items.length;document.getElementById('ops-ok').textContent=items.filter(e=>ops_sev(e.subject)==='ok').length;document.getElementById('ops-fail').textContent=items.filter(e=>ops_sev(e.subject)==='err').length;}
