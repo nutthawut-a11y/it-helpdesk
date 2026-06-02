@@ -527,10 +527,11 @@ async function ops_section(name, el) {
 async function ops_fetchOpm(paths) {
   const base = document.getElementById('opm-url').value.trim().replace(/\/$/,'');
   const key  = document.getElementById('opm-key').value.trim();
-  // OpManager 12.8: AUTHTOKEN as header, path = /client/api/json/alarm/listAlarms
+  // OpManager 12.8: ใช้ session cookie (credentials:include) — ไม่มี custom header = ไม่มี CORS preflight
+  // ผู้ใช้ต้อง login OpManager ในเครื่องเดียวกัน (office LAN)
   for (const path of paths) {
     try {
-      const r = await fetch(`${base}${path}`, { mode:'cors', headers: key ? {'AUTHTOKEN': key} : {} });
+      const r = await fetch(`${base}${path}`, { mode:'cors', credentials:'include' });
       if (r.ok) return await r.json();
     } catch(e) {}
   }
