@@ -477,10 +477,10 @@ async function ops_section(name, el) {
   body.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
 
   const pathMap = {
-    dashboard: ['/apiclient/api/v2/alarm','/api/json/alarms','/api/json/alarm'],
-    servers:   ['/apiclient/api/v2/device','/api/json/device','/api/json/resources'],
+    dashboard: ['/apiclient/api/json/alarm','/api/json/alarms','/api/json/alarm'],
+    servers:   ['/apiclient/api/json/device','/api/json/device','/api/json/resources'],
     alarms:    ['/apiclient/api/v2/alarm','/api/json/alarms','/api/json/alarm'],
-    network:   ['/apiclient/api/v2/device','/api/json/device','/api/json/resources'],
+    network:   ['/apiclient/api/json/device','/api/json/device','/api/json/resources'],
   };
   const raw = await ops_fetchOpm(pathMap[name] || pathMap.alarms);
   if (!raw) {
@@ -527,11 +527,12 @@ async function ops_section(name, el) {
 async function ops_fetchOpm(paths) {
   const base = document.getElementById('opm-url').value.trim().replace(/\/$/,'');
   const key  = document.getElementById('opm-key').value.trim();
-  // ลองทุก path ด้วย 2 auth method: AUTHTOKEN header (v2) และ ?apiKey= (v1)
+  // OpManager REST API: query param คือ AUTHTOKEN= (ไม่ใช่ apiKey=)
+  // simple request (ไม่มี custom header) → ไม่มี preflight → CORS ผ่านได้แม้ web.xml ยังไม่สมบูรณ์
   for (const path of paths) {
     for (const [url, hdrs] of [
-      [`${base}${path}`,            { 'Accept':'application/json', ...(key?{'AUTHTOKEN':key}:{}) }],
-      [`${base}${path}?apiKey=${key}`, { 'Accept':'application/json' }]
+      [`${base}${path}?AUTHTOKEN=${key}`, {}],
+      [`${base}${path}`,                  { 'Accept':'application/json', ...(key?{'AUTHTOKEN':key}:{}) }]
     ]) {
       try {
         const r = await fetch(url, { mode:'cors', headers: hdrs });
@@ -544,7 +545,7 @@ async function ops_fetchOpm(paths) {
 
 async function ops_loadOpm(){
   const l=document.getElementById('opm-list'),c=document.getElementById('opm-count');
-  const raw = await ops_fetchOpm(['/apiclient/api/v2/alarm','/api/json/alarms','/api/json/alarm']);
+  const raw = await ops_fetchOpm(['/apiclient/api/json/alarm','/api/json/alarms','/api/json/alarm']);
   let items = raw ? (Array.isArray(raw) ? raw : (raw.data||raw.alarms||raw.alarm||[])) : null;
   if(!items){l.innerHTML='<div style="text-align:center;padding:30px;color:#555;font-size:13px;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#888;margin-top:8px;display:block;">ตรวจสอบ URL และ API Key<br>OpManager → Settings → General → API</small></div>';c.textContent='–';ops_kpi('opm',[]);return;}
   c.textContent=items.length;
