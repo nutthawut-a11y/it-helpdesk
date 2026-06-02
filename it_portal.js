@@ -12,7 +12,7 @@ const MSAL_CONFIG = {
   cache: { cacheLocation: 'sessionStorage' }
 };
 const SP_SCOPES   = ['https://furuyath.sharepoint.com/.default'];
-const GRAPH_SCOPES = ['https://graph.microsoft.com/Mail.Read'];
+const GRAPH_SCOPES = ['https://graph.microsoft.com/.default'];
 const msalInstance = new msal.PublicClientApplication(MSAL_CONFIG);
 
 // Role map — เพิ่ม email ได้ที่นี่
