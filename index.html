@@ -214,22 +214,31 @@
       </div>
     </div>
 
-    <!-- OpManager Server Status (iframe — ใช้ได้เฉพาะใน LAN) -->
+    <!-- OpManager Quick Links -->
     <div style="margin-top:24px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div style="font-weight:600;font-size:15px;color:#1a1d2e;">🖥 OpManager — Server Status <span style="font-size:11px;color:#888;font-weight:400;">(ใช้ได้เฉพาะในออฟฟิศ)</span></div>
-        <div style="display:flex;gap:8px;align-items:center;">
-          <input id="opm-iframe-url" value="http://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices"
-            style="font-size:12px;padding:4px 8px;border:1px solid #e2e4ed;border-radius:6px;width:480px;color:#555;" />
-          <button onclick="document.getElementById('opm-iframe').src=document.getElementById('opm-iframe-url').value"
-            class="btn btn-primary" style="font-size:12px;padding:5px 14px;">โหลด</button>
-        </div>
+      <div style="font-weight:600;font-size:15px;color:#1a1d2e;margin-bottom:12px;">🖥 OpManager <span style="font-size:11px;color:#888;font-weight:400;">(เปิดใน tab ใหม่ — ใช้ได้เฉพาะในออฟฟิศ)</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Home/Dashboard/Overview/dashboard.name.enterprisedashboard" target="_blank"
+          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
+          <span style="font-size:20px;">📊</span><span>Dashboard</span>
+        </a>
+        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices" target="_blank"
+          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
+          <span style="font-size:20px;">🖥</span><span>Server Inventory</span>
+        </a>
+        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Alarms/List/All_Alarms" target="_blank"
+          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
+          <span style="font-size:20px;">🚨</span><span>Alarms</span>
+        </a>
+        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Network/List/All_Devices" target="_blank"
+          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
+          <span style="font-size:20px;">🌐</span><span>Network</span>
+        </a>
+        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Reports" target="_blank"
+          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
+          <span style="font-size:20px;">📋</span><span>Reports</span>
+        </a>
       </div>
-      <iframe id="opm-iframe"
-        src="http://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices"
-        style="width:100%;height:600px;border:1px solid #e2e4ed;border-radius:12px;background:#f9f9f9;"
-        sandbox="allow-same-origin allow-scripts allow-forms allow-popups">
-      </iframe>
     </div>
 
   </div>
