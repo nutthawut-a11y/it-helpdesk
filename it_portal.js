@@ -412,9 +412,10 @@ async function ops_loadVeem() {
   const fq=filters.map(f=>`contains(subject,'${f}')`).join(' or ');
   try {
     const token = await getToken(GRAPH_SCOPES);
+    const searchQ = filters.map(f => `subject:${f}`).join(' OR ');
     const r=await fetch(
-      `https://graph.microsoft.com/v1.0/me/messages?$filter=${encodeURIComponent(fq)}&$orderby=receivedDateTime desc&$top=20&$select=subject,receivedDateTime,from,bodyPreview`,
-      { headers: { 'Authorization': 'Bearer ' + token } }
+      `https://graph.microsoft.com/v1.0/me/messages?$search="${encodeURIComponent(searchQ)}"&$top=20&$select=subject,receivedDateTime,from,bodyPreview`,
+      { headers: { 'Authorization': 'Bearer ' + token, 'ConsistencyLevel': 'eventual' } }
     );
     if(!r.ok)throw new Error('HTTP '+r.status);
     ops_renderVeem((await r.json()).value||[]);
