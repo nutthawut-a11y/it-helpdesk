@@ -213,6 +213,25 @@
         <div class="ops-panel-body" id="opm-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
       </div>
     </div>
+
+    <!-- OpManager Server Status (iframe — ใช้ได้เฉพาะใน LAN) -->
+    <div style="margin-top:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-weight:600;font-size:15px;color:#1a1d2e;">🖥 OpManager — Server Status <span style="font-size:11px;color:#888;font-weight:400;">(ใช้ได้เฉพาะในออฟฟิศ)</span></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="opm-iframe-url" value="http://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices"
+            style="font-size:12px;padding:4px 8px;border:1px solid #e2e4ed;border-radius:6px;width:480px;color:#555;" />
+          <button onclick="document.getElementById('opm-iframe').src=document.getElementById('opm-iframe-url').value"
+            class="btn btn-primary" style="font-size:12px;padding:5px 14px;">โหลด</button>
+        </div>
+      </div>
+      <iframe id="opm-iframe"
+        src="http://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices"
+        style="width:100%;height:600px;border:1px solid #e2e4ed;border-radius:12px;background:#f9f9f9;"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups">
+      </iframe>
+    </div>
+
   </div>
 </div>
 
