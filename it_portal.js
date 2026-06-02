@@ -33,9 +33,15 @@ function autoSetRole(account) {
 }
 
 // Handle redirect response first — then auto-login if no account
+// flag บอกว่า redirect ครั้งนี้เป็น Graph consent หรือเปล่า
+const _isGraphConsent = sessionStorage.getItem('graphConsentPending') === '1';
+
 const _authReady = msalInstance.handleRedirectPromise()
   .then(response => {
-    if (response) console.log('MSAL: login via redirect OK');
+    if (response) {
+      console.log('MSAL: redirect OK, scopes:', response.scopes);
+      sessionStorage.removeItem('graphConsentPending');
+    }
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) {
       msalInstance.loginRedirect({ scopes: SP_SCOPES });
@@ -44,6 +50,14 @@ const _authReady = msalInstance.handleRedirectPromise()
     }
   })
   .catch(err => console.error('MSAL redirect error:', err));
+
+// เรียกเมื่อกดปุ่ม "เชื่อมต่อ Email" — redirect ขอ Graph token แยกต่างหาก
+function ops_connectEmail() {
+  const account = msalInstance.getAllAccounts()[0];
+  if (!account) return;
+  sessionStorage.setItem('graphConsentPending', '1');
+  msalInstance.acquireTokenRedirect({ scopes: GRAPH_SCOPES, account });
+}
 
 async function getToken(scopes) {
   await _authReady;
@@ -428,7 +442,7 @@ async function ops_loadVeem() {
       {subject:'[Success] BK_FIT_PAYROLL_to_FitWasabi_Repo',receivedDateTime:new Date(Date.now()-3*3600000).toISOString(),from:{emailAddress:{address:'veeam@furuya.co.th'}},bodyPreview:'Duration: 00:05:23'},
       {subject:'[Failed] Backup Configuration Job',receivedDateTime:new Date(Date.now()-6*3600000).toISOString(),from:{emailAddress:{address:'veeam@furuya.co.th'}},bodyPreview:'Error: Connection timeout'}
     ]);
-    document.getElementById('ops-status').textContent='⚠️ Demo data — ต้อง login เพื่อดูข้อมูลจริง';
+    document.getElementById('ops-status').innerHTML='⚠️ Demo data — <a href="javascript:ops_connectEmail()" style="color:#0070C0;font-weight:600;">คลิกเพื่อเชื่อมต่อ Email</a> (ครั้งแรกเท่านั้น)';
   }
 }
 
