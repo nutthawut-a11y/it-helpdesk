@@ -409,15 +409,15 @@ function ops_tag(s){const l={ok:'Success',err:'Failed',warn:'Warning',info:'Info
 async function ops_loadVeem() {
   const filters=document.getElementById('veem-filter').value.split(',').map(s=>s.trim()).filter(Boolean);
   const list=document.getElementById('veem-list');
-  const fq=filters.map(f=>`contains(subject,'${f}')`).join(' or ');
   try {
     const token = await getToken(GRAPH_SCOPES);
-    const searchQ = filters.map(f => `subject:${f}`).join(' OR ');
+    // ค้นหาแบบ OR ทุก keyword ใน subject — ค้นข้าม folder อัตโนมัติ
+    const searchQ = filters.join(' OR ');
     const r=await fetch(
-      `https://graph.microsoft.com/v1.0/me/messages?$search="${encodeURIComponent(searchQ)}"&$top=20&$select=subject,receivedDateTime,from,bodyPreview`,
-      { headers: { 'Authorization': 'Bearer ' + token, 'ConsistencyLevel': 'eventual' } }
+      `https://graph.microsoft.com/v1.0/me/messages?$search=${encodeURIComponent('"'+searchQ+'"')}&$top=20&$select=subject,receivedDateTime,from,bodyPreview&$orderby=receivedDateTime+desc`,
+      { headers: { 'Authorization': 'Bearer ' + token } }
     );
-    if(!r.ok)throw new Error('HTTP '+r.status);
+    if(!r.ok) { const e=await r.json(); throw new Error(e.error?.message||'HTTP '+r.status); }
     ops_renderVeem((await r.json()).value||[]);
   } catch(e){
     ops_renderVeem([
