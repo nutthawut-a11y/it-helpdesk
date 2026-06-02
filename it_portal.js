@@ -38,7 +38,7 @@ const _authReady = msalInstance.handleRedirectPromise()
     if (response) console.log('MSAL: login via redirect OK');
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) {
-      msalInstance.loginRedirect({ scopes: [...SP_SCOPES, ...GRAPH_SCOPES] });
+      msalInstance.loginRedirect({ scopes: SP_SCOPES });
     } else {
       autoSetRole(accounts[0]);
     }
@@ -55,9 +55,14 @@ async function getToken(scopes) {
   try {
     const r = await msalInstance.acquireTokenSilent({ scopes, account });
     return r.accessToken;
-  } catch {
-    msalInstance.acquireTokenRedirect({ scopes, account });
-    return new Promise(() => {}); // รอ redirect
+  } catch(e) {
+    // ถ้า silent fail → popup consent สำหรับ scope ใหม่
+    try {
+      const r2 = await msalInstance.acquireTokenPopup({ scopes, account });
+      return r2.accessToken;
+    } catch {
+      throw new Error('ไม่สามารถขอ token ได้: ' + e.message);
+    }
   }
 }
 
