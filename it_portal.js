@@ -281,9 +281,10 @@ async function std_save() {
   const btn = document.getElementById('sp-save-btn');
   btn.textContent = 'กำลังบันทึก...'; btn.disabled = true;
   try {
-    const digest = await sp_digest();
+    const [digest, entityType] = await Promise.all([sp_digest(), sp_entityType()]);
     const status = document.getElementById('sp-status').value;
     const payload = {
+      __metadata: { type: entityType },
       Status: status,
       ResolutionNote: document.getElementById('sp-resolution').value
     };
