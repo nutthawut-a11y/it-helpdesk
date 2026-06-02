@@ -209,35 +209,15 @@
         <div class="ops-panel-body" id="veem-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
       </div>
       <div class="ops-panel">
-        <div class="ops-panel-hdr">🖥 OpManager Alerts <span class="ops-tag ops-tag-warn" id="opm-count">0</span></div>
+        <div class="ops-panel-hdr">
+          <span>🖥 OpManager <span class="ops-tag ops-tag-warn" id="opm-count">0</span></span>
+          <div style="display:flex;gap:4px;">
+            <button class="opm-tab-btn active" onclick="ops_opmView('alarms',this)">🚨 Alarms</button>
+            <button class="opm-tab-btn" onclick="ops_opmView('devices',this)">💻 Devices</button>
+          </div>
+        </div>
         <div class="ops-panel-body" id="opm-list"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
-      </div>
-    </div>
-
-    <!-- OpManager Quick Links -->
-    <div style="margin-top:24px;">
-      <div style="font-weight:600;font-size:15px;color:#1a1d2e;margin-bottom:12px;">🖥 OpManager <span style="font-size:11px;color:#888;font-weight:400;">(เปิดใน tab ใหม่ — ใช้ได้เฉพาะในออฟฟิศ)</span></div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
-        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Home/Dashboard/Overview/dashboard.name.enterprisedashboard" target="_blank"
-          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
-          <span style="font-size:20px;">📊</span><span>Dashboard</span>
-        </a>
-        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Inventory/List/Server/Devices" target="_blank"
-          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
-          <span style="font-size:20px;">🖥</span><span>Server Inventory</span>
-        </a>
-        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Alarms/List/All_Alarms" target="_blank"
-          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
-          <span style="font-size:20px;">🚨</span><span>Alarms</span>
-        </a>
-        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Network/List/All_Devices" target="_blank"
-          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
-          <span style="font-size:20px;">🌐</span><span>Network</span>
-        </a>
-        <a href="https://fitmanageengine:8061/apiclient/ember/index.jsp#/Reports" target="_blank"
-          style="display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;border:1px solid #e2e4ed;border-radius:10px;text-decoration:none;color:#1a1d2e;font-size:13px;font-weight:500;transition:box-shadow .15s;" onmouseover="this.style.boxShadow='0 2px 8px rgba(0,112,192,.15)'" onmouseout="this.style.boxShadow='none'">
-          <span style="font-size:20px;">📋</span><span>Reports</span>
-        </a>
+        <div class="ops-panel-body" id="opm-devices" style="display:none"><div style="text-align:center;padding:40px;color:#666;"><div class="spinner"></div></div></div>
       </div>
     </div>
 
@@ -247,6 +227,6 @@
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
-<script src="./it_portal.js?v=10"></script>
+<script src="./it_portal.js?v=11"></script>
 </body>
 </html>

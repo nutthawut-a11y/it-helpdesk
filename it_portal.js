@@ -454,18 +454,57 @@ function ops_renderVeem(emails){
   ops_kpi('veem',emails);
 }
 
-async function ops_loadOpm(){
-  const base=document.getElementById('opm-url').value.trim().replace(/\/$/,''),key=document.getElementById('opm-key').value.trim();
-  const l=document.getElementById('opm-list'),c=document.getElementById('opm-count');
-  const kp=key?`?apiKey=${key}`:'';
-  let items=null;
-  for(const ep of [`${base}/api/json/alarms${kp}`,`${base}/api/json/alarm${kp}`,`${base}/apiclient/api/v2/alarms${kp}`]){
-    try{const r=await fetch(ep,{headers:{'Accept':'application/json',...(key?{'Authorization':'ApiKey '+key}:{})},mode:'cors'});if(r.ok){const d=await r.json();items=Array.isArray(d)?d:(d.data||d.alarms||d.alarm||[]);break;}}catch(e){}
+function ops_opmView(view, el) {
+  document.querySelectorAll('.opm-tab-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('opm-list').style.display    = view === 'alarms'  ? '' : 'none';
+  document.getElementById('opm-devices').style.display = view === 'devices' ? '' : 'none';
+  if (view === 'devices' && !window._opmDevLoaded) ops_loadOpmDevices();
+}
+
+async function ops_fetchOpm(paths) {
+  const base = document.getElementById('opm-url').value.trim().replace(/\/$/,'');
+  const key  = document.getElementById('opm-key').value.trim();
+  const kp   = key ? `?apiKey=${key}` : '';
+  for (const path of paths) {
+    try {
+      const r = await fetch(`${base}${path}${kp}`, { mode: 'cors', headers: { 'Accept': 'application/json' } });
+      if (r.ok) return await r.json();
+    } catch(e) {}
   }
-  if(!items){l.innerHTML='<div style="text-align:center;padding:30px;color:#555;font-size:13px;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#444;margin-top:8px;display:block;">ตรวจสอบ URL และ API Key<br>OpManager → Settings → General → API</small></div>';c.textContent='–';ops_kpi('opm',[]);return;}
+  return null;
+}
+
+async function ops_loadOpm(){
+  const l=document.getElementById('opm-list'),c=document.getElementById('opm-count');
+  const raw = await ops_fetchOpm(['/api/json/alarms','/api/json/alarm','/apiclient/api/v2/alarms']);
+  let items = raw ? (Array.isArray(raw) ? raw : (raw.data||raw.alarms||raw.alarm||[])) : null;
+  if(!items){l.innerHTML='<div style="text-align:center;padding:30px;color:#555;font-size:13px;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#888;margin-top:8px;display:block;">ตรวจสอบ URL และ API Key<br>OpManager → Settings → General → API</small></div>';c.textContent='–';ops_kpi('opm',[]);return;}
   c.textContent=items.length;
   l.innerHTML=!items.length?'<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Alert</div>':items.slice(0,30).map(a=>{const n=a.device||a.displayName||a.entityName||'Unknown',msg=a.message||a.alarmMessage||a.description||'',sv=(a.severity||'').toLowerCase(),s=sv.includes('crit')||sv.includes('error')?'err':sv.includes('warn')?'warn':sv.includes('clear')?'ok':'info';return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${n}</div><div class="ops-meta">${msg} · ${ops_ago(a.lastUpdatedTime||a.createdTime||'')}</div></div>${ops_tag(s)}</div>`;}).join('');
   ops_kpi('opm',items);
+}
+
+async function ops_loadOpmDevices() {
+  const el = document.getElementById('opm-devices');
+  el.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
+  const raw = await ops_fetchOpm(['/api/json/device','/api/json/resources','/apiclient/api/v2/devices','/api/json/monitor']);
+  let devices = raw ? (Array.isArray(raw) ? raw : (raw.response?.result || raw.data || raw.devices || [])) : null;
+  if (!devices) {
+    el.innerHTML = '<div style="text-align:center;padding:30px;font-size:13px;color:#555;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#888;margin-top:6px;display:block;">ตรวจสอบ URL, API Key และ CORS Settings<br>OpManager → Settings → General → API</small></div>';
+    return;
+  }
+  window._opmDevLoaded = true;
+  if (!devices.length) { el.innerHTML = '<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Device</div>'; return; }
+  el.innerHTML = devices.slice(0,50).map(d => {
+    const name = d.deviceName||d.displayName||d.entityName||'Unknown';
+    const ip   = d.ipAddress||d.ip||'';
+    const type = d.type||d.deviceType||'';
+    const st   = (d.status||d.deviceStatus||'').toString().toUpperCase();
+    const s    = (st==='DOWN'||st==='1'||st==='CRITICAL') ? 'err' : (st==='UP'||st==='0'||st==='ACTIVE') ? 'ok' : 'warn';
+    const label= s==='err'?'Down':s==='ok'?'Up':(st||'Unknown');
+    return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${name}${ip?` <span style="color:#888;font-size:11px;">(${ip})</span>`:''}</div><div class="ops-meta">${type}${type&&d.lastPollTime?' · ':''}${ops_ago(d.lastPollTime||d.lastUpdatedTime||'')}</div></div>${ops_tag(s)}</div>`;
+  }).join('');
 }
 
 function ops_kpi(src,items){
