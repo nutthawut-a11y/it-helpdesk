@@ -92,8 +92,10 @@ async function sp_headers(extra = {}) {
 
 // ── SHARED ──────────────────────────────────────────────────
 let tabLoaded = {};
+let currentRole = 'employee';
 
 function setRole(role) {
+  currentRole = role;
   // ซ่อน ops config panel จาก non-IT-admin
   const cfgPanel = document.getElementById('ops-config-panel');
   if (cfgPanel) cfgPanel.style.display = role === 'it_admin' ? '' : 'none';
@@ -278,7 +280,10 @@ function std_renderTable(items) {
       <td><div>${t.RequesterName||''}</div><div style="font-size:11px;color:#666">${t.Department||''}</div></td>
       <td>${std_pb(t.Priority)}</td><td>${std_sb(t.Status)}</td>
       <td style="min-width:80px"><div style="font-size:11px;color:#666">${t.SLA_Deadline?new Date(t.SLA_Deadline).toLocaleDateString('th-TH'):'-'}</div><div class="sla-bar"><div class="sla-fill" style="width:${pct}%;background:${color}"></div></div></td>
-      <td><button class="btn-sm btn-manage" onclick="std_openPanel(${t.ID})">จัดการ</button></td>
+      <td>
+        <button class="btn-sm btn-manage" onclick="std_openPanel(${t.ID})">จัดการ</button>
+        ${currentRole === 'it_admin' ? `<button class="btn-sm btn-delete" onclick="std_deleteTicket(${t.ID},'${t.TicketID||'#'+t.ID}')" style="background:#ef4444;color:#fff;margin-left:4px">ลบ</button>` : ''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -302,6 +307,33 @@ function std_openPanel(id) {
 function std_closePanel() {
   document.getElementById('staff-panel').classList.remove('open');
   std_curId = null;
+}
+
+async function std_deleteTicket(id, ticketId) {
+  if (!confirm(`ยืนยันลบ Ticket ${ticketId} ?\nการลบไม่สามารถเรียกคืนได้`)) return;
+  try {
+    const digest = await sp_digest();
+    const r = await fetch(
+      `${SP_SITE}/_api/web/lists/getbytitle('${encodeURIComponent(LIST_NAME)}')/items(${id})`,
+      {
+        method: 'POST',
+        headers: await sp_headers({
+          'X-RequestDigest': digest,
+          'X-HTTP-Method': 'DELETE',
+          'IF-MATCH': '*'
+        })
+      }
+    );
+    if (r.ok || r.status === 204) {
+      showToast(`ลบ Ticket ${ticketId} เรียบร้อยแล้ว`);
+      std_tickets = std_tickets.filter(x => x.ID !== id);
+      std_renderTable(std_tickets);
+    } else {
+      showToast(`เกิดข้อผิดพลาด: ${r.status}`, true);
+    }
+  } catch(e) {
+    showToast('ลบไม่สำเร็จ: ' + e.message, true);
+  }
 }
 
 async function std_save() {
