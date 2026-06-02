@@ -477,10 +477,10 @@ async function ops_section(name, el) {
   body.innerHTML = '<div style="text-align:center;padding:30px"><div class="spinner"></div></div>';
 
   const pathMap = {
-    dashboard: ['/apiclient/api/json/alarm','/api/json/alarms','/api/json/alarm'],
-    servers:   ['/apiclient/api/json/device','/api/json/device','/api/json/resources'],
-    alarms:    ['/apiclient/api/v2/alarm','/api/json/alarms','/api/json/alarm'],
-    network:   ['/apiclient/api/json/device','/api/json/device','/api/json/resources'],
+    dashboard: ['/client/api/json/alarm/listAlarms'],
+    alarms:    ['/client/api/json/alarm/listAlarms'],
+    servers:   ['/client/api/json/device/getDeviceTree'],
+    network:   ['/client/api/json/device/getDeviceTree'],
   };
   const raw = await ops_fetchOpm(pathMap[name] || pathMap.alarms);
   if (!raw) {
@@ -527,29 +527,29 @@ async function ops_section(name, el) {
 async function ops_fetchOpm(paths) {
   const base = document.getElementById('opm-url').value.trim().replace(/\/$/,'');
   const key  = document.getElementById('opm-key').value.trim();
-  // OpManager REST API: query param คือ AUTHTOKEN= (ไม่ใช่ apiKey=)
-  // simple request (ไม่มี custom header) → ไม่มี preflight → CORS ผ่านได้แม้ web.xml ยังไม่สมบูรณ์
+  // OpManager 12.8: AUTHTOKEN as header, path = /client/api/json/alarm/listAlarms
   for (const path of paths) {
-    for (const [url, hdrs] of [
-      [`${base}${path}?AUTHTOKEN=${key}`, {}],
-      [`${base}${path}`,                  { 'Accept':'application/json', ...(key?{'AUTHTOKEN':key}:{}) }]
-    ]) {
-      try {
-        const r = await fetch(url, { mode:'cors', headers: hdrs });
-        if (r.ok) return await r.json();
-      } catch(e) {}
-    }
+    try {
+      const r = await fetch(`${base}${path}`, { mode:'cors', headers: key ? {'AUTHTOKEN': key} : {} });
+      if (r.ok) return await r.json();
+    } catch(e) {}
   }
   return null;
 }
 
 async function ops_loadOpm(){
   const l=document.getElementById('opm-list'),c=document.getElementById('opm-count');
-  const raw = await ops_fetchOpm(['/apiclient/api/json/alarm','/api/json/alarms','/api/json/alarm']);
-  let items = raw ? (Array.isArray(raw) ? raw : (raw.data||raw.alarms||raw.alarm||[])) : null;
+  const raw = await ops_fetchOpm(['/client/api/json/alarm/listAlarms']);
+  const items = raw ? (Array.isArray(raw) ? raw : (raw.data||raw.alarms||[])) : null;
   if(!items){l.innerHTML='<div style="text-align:center;padding:30px;color:#555;font-size:13px;">เชื่อมต่อ OpManager ไม่ได้<br><small style="color:#888;margin-top:8px;display:block;">ตรวจสอบ URL และ API Key<br>OpManager → Settings → General → API</small></div>';c.textContent='–';ops_kpi('opm',[]);return;}
   c.textContent=items.length;
-  l.innerHTML=!items.length?'<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Alert</div>':items.slice(0,30).map(a=>{const n=a.device||a.displayName||a.entityName||'Unknown',msg=a.message||a.alarmMessage||a.description||'',sv=(a.severity||'').toLowerCase(),s=sv.includes('crit')||sv.includes('error')?'err':sv.includes('warn')?'warn':sv.includes('clear')?'ok':'info';return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${n}</div><div class="ops-meta">${msg} · ${ops_ago(a.lastUpdatedTime||a.createdTime||'')}</div></div>${ops_tag(s)}</div>`;}).join('');
+  l.innerHTML=!items.length?'<div style="text-align:center;padding:30px;color:#22c55e;">✅ ไม่มี Alert</div>':items.slice(0,30).map(a=>{
+    const n=a.deviceName||a.displayName||a.entity||'Unknown';
+    const msg=a.message||a.alarmMessage||'';
+    const sv=(a.severityString||a.severity||'').toLowerCase();
+    const s=sv.includes('crit')||sv.includes('error')?'err':sv.includes('warn')?'warn':sv.includes('clear')||sv.includes('normal')?'ok':'info';
+    return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${n}</div><div class="ops-meta">${msg} · ${ops_ago(a.modTimeLong||a.modTime||'')}</div></div>${ops_tag(s)}</div>`;
+  }).join('');
   ops_kpi('opm',items);
 }
 
