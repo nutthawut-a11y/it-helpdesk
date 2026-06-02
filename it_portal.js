@@ -48,21 +48,23 @@ const _authReady = msalInstance.handleRedirectPromise()
 async function getToken(scopes) {
   await _authReady;
   const account = msalInstance.getAllAccounts()[0];
+  const isSP = scopes.some(s => s.includes('sharepoint.com'));
   if (!account) {
-    msalInstance.loginRedirect({ scopes });
-    return new Promise(() => {}); // รอ redirect
+    // redirect เฉพาะตอน login หลัก (SharePoint)
+    if (isSP) msalInstance.loginRedirect({ scopes: SP_SCOPES });
+    throw new Error('not logged in');
   }
   try {
     const r = await msalInstance.acquireTokenSilent({ scopes, account });
     return r.accessToken;
   } catch(e) {
-    // ถ้า silent fail → popup consent สำหรับ scope ใหม่
-    try {
-      const r2 = await msalInstance.acquireTokenPopup({ scopes, account });
-      return r2.accessToken;
-    } catch {
-      throw new Error('ไม่สามารถขอ token ได้: ' + e.message);
+    // SharePoint: redirect ให้ login ใหม่
+    if (isSP) {
+      msalInstance.acquireTokenRedirect({ scopes: SP_SCOPES, account });
+      return new Promise(() => {});
     }
+    // Graph (Mail.Read ฯลฯ): throw ให้ caller จัดการ (แสดง demo data)
+    throw new Error('token silent fail: ' + e.message);
   }
 }
 
