@@ -94,6 +94,10 @@ async function sp_headers(extra = {}) {
 let tabLoaded = {};
 
 function setRole(role) {
+  // ซ่อน ops config panel จาก non-IT-admin
+  const cfgPanel = document.getElementById('ops-config-panel');
+  if (cfgPanel) cfgPanel.style.display = role === 'it_admin' ? '' : 'none';
+
   document.querySelectorAll('.nav-tab[data-roles]').forEach(btn => {
     const ok = btn.getAttribute('data-roles').split(',').includes(role);
     btn.hidden = !ok;
