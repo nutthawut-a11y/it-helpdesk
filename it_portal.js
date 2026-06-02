@@ -38,7 +38,7 @@ const _authReady = msalInstance.handleRedirectPromise()
     if (response) console.log('MSAL: login via redirect OK');
     const accounts = msalInstance.getAllAccounts();
     if (accounts.length === 0) {
-      msalInstance.loginRedirect({ scopes: SP_SCOPES });
+      msalInstance.loginRedirect({ scopes: [...SP_SCOPES, ...GRAPH_SCOPES] });
     } else {
       autoSetRole(accounts[0]);
     }
