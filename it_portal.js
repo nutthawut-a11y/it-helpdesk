@@ -519,7 +519,7 @@ async function ops_section(name, el) {
       const tp = d.type||d.deviceType||'';
       const st = (d.status||d.deviceStatus||'').toString().toUpperCase();
       const s  = (st==='DOWN'||st==='1'||st==='CRITICAL')?'err':(st==='UP'||st==='0'||st==='ACTIVE')?'ok':'warn';
-      return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${nm}${ip?` <span style="color:#888;font-size:11px;">(${ip})</span>`:''}</div><div class="ops-meta">${tp}${tp&&ops_ago(d.lastPollTime||d.lastUpdatedTime||'')?(' · '+ops_ago(d.lastPollTime||d.lastUpdatedTime||'')):'${ops_ago(d.lastPollTime||d.lastUpdatedTime||'')}'}</div></div>${ops_tag(s)}</div>`;
+      return `<div class="ops-item">${ops_dot(s)}<div class="ops-body"><div class="ops-subj">${nm}${ip?' <span style="color:#888;font-size:11px;">('+ip+')</span>':''}</div><div class="ops-meta">${tp}${tp?' · ':''}${ops_ago(d.lastPollTime||d.lastUpdatedTime||'')}</div></div>${ops_tag(s)}</div>`;
     }).join('');
   }
 }
