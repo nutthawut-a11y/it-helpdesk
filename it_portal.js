@@ -281,7 +281,7 @@ function std_renderTable(items) {
       <td>${std_pb(t.Priority)}</td><td>${std_sb(t.Status)}</td>
       <td style="min-width:80px"><div style="font-size:11px;color:#666">${t.SLA_Deadline?new Date(t.SLA_Deadline).toLocaleDateString('th-TH'):'-'}</div><div class="sla-bar"><div class="sla-fill" style="width:${pct}%;background:${color}"></div></div></td>
       <td>
-        <button class="btn-sm btn-manage" onclick="std_openPanel(${t.ID})">จัดการ</button>
+        <button class="btn-sm btn-manage" onclick="std_openPanel(${t.ID})">${currentRole === 'gm' ? 'ดูรายละเอียด' : 'จัดการ'}</button>
         ${currentRole === 'it_admin' ? `<button class="btn-sm btn-delete" onclick="std_deleteTicket(${t.ID},'${t.TicketID||'#'+t.ID}')" style="background:#ef4444;color:#fff;margin-left:4px">ลบ</button>` : ''}
       </td>
     </tr>`;
@@ -301,6 +301,11 @@ function std_openPanel(id) {
   document.getElementById('sp-status').value      = t.Status || 'ใหม่';
   document.getElementById('sp-resolution').value  = t.ResolutionNote || '';
   document.getElementById('sp-confirm-date').value = t.ConfirmDate ? new Date(t.ConfirmDate).toISOString().slice(0,16) : '';
+  const isReadOnly = currentRole === 'gm';
+  document.getElementById('sp-status').disabled      = isReadOnly;
+  document.getElementById('sp-resolution').readOnly  = isReadOnly;
+  document.getElementById('sp-confirm-date').disabled = isReadOnly;
+  document.getElementById('sp-save-btn').style.display = isReadOnly ? 'none' : '';
   document.getElementById('staff-panel').classList.add('open');
 }
 
